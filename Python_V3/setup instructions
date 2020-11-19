@@ -1,0 +1,5 @@
+**1. Tutorial: https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_eye.xml
+2. Eye Classifier: https://github.com/opencv/opencv/blob/master/data/haarcascades/haarcascade_eye.xml
+	1. Right click on 'RAW'
+	2. Save link as
+	3. In working Directory
