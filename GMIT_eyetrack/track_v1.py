@@ -7,6 +7,12 @@ import logging as log
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
+# blob - initialize paramaters
+parameters = cv2.SimpleBlobDetector_Params()
+parameters.filterByArea = True
+parameters.maxArea = 1500
+detector = cv2.SimpleBlobDetector_create(parameters)
+
 # import image for testing and create grey scale of it 
 img = cv2.imread('trump.jpg')
 grey_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -33,6 +39,10 @@ eyes = eye_cascade.detectMultiScale(grey_face)
 # of size ew,eh
 for (ex, ey, ew, eh) in eyes:
    cv2.rectangle(detected_face, (ex, ey), (ex + ew, ey + eh), (255,255,0), 2) # color and thickness
+
+# blob detection algo used for tracking
+threshold = 86
+_, img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
 
 def detect_face(img, classifier):
     # create two tone img copy 
@@ -78,6 +88,20 @@ def detect_eyes(img, classifier):
         else:
             right_eye = img[y:y+h, x:x+w]
     return left_eye, right_eye
+
+def ignore_brow(img):
+    # set height and width to the images values
+    height, width = img.shape[:2]
+    # set eye brow line estimate
+    brow_height = int(height/4)
+    # cut out new image
+    img = img[brow_height:height, 0:width]
+    return img
+
+
+
+
+
 
 # show results of face detection
 cv2.imshow('face detected', img)
