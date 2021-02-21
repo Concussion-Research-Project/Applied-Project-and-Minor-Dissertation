@@ -31,14 +31,11 @@ detected_face = img[fy:fy+fh, fx:fx+fw]
 # eyes: an array of arrays
 eyes = eye_cascade.detectMultiScale(grey_face)
 
-
 # draw box around eyes
 # start at ex,ey
 # of size ew,eh
 for (ex, ey, ew, eh) in eyes:
     cv2.rectangle(detected_face, (ex, ey), (ex + ew, ey + eh), (255,255,0), 2) # color and thickness
-
-
 
 # show results of face detection
 cv2.imshow('face detected', img)
