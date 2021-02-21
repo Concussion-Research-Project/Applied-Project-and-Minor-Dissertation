@@ -1,3 +1,5 @@
+
+
 import cv2
 import dlib
 import numpy as np
@@ -31,12 +33,26 @@ detected_face = img[fy:fy+fh, fx:fx+fw]
 # eyes: an array of arrays
 eyes = eye_cascade.detectMultiScale(grey_face)
 
-
 # draw box around eyes
 # start at ex,ey
 # of size ew,eh
 for (ex, ey, ew, eh) in eyes:
     cv2.rectangle(detected_face, (ex, ey), (ex + ew, ey + eh), (255,255,0), 2) # color and thickness
+
+# default.jpg - program detects chin as eye
+# face.jpg - program detects left nostral as eye
+# to prevent the detection of anything other than the eyes 
+# we will ignore the bottom half of the image
+def detect_eyes(img, classifier):
+    # create two tone img copy 
+    grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    eyes = eye_cascade.detectMultiScale(grey_frame, 1.3, 5)
+    coords = cascade.detectMultiScale(img_grey, 1.3, 5)
+    height = np.size(image, 0)
+    for (x,y,w,h) in coords
+        # ignore the bottom half if eye 'detected'
+        if y+h > height/2:
+            pass
 
 
 
