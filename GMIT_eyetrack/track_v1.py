@@ -1,12 +1,13 @@
+# Adapted from: https://medium.com/@stepanfilonov/tracking-your-eyes-with-python-3952e66194a6
 import cv2
 import dlib
 import numpy as np
 import logging as log
 
+# Initialise OpenCV 
 # set face and eye data
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-
 # blob - initialize paramaters
 parameters = cv2.SimpleBlobDetector_Params()
 parameters.filterByArea = True
@@ -14,7 +15,7 @@ parameters.maxArea = 1500
 detector = cv2.SimpleBlobDetector_create(parameters)
 
 # import image for testing and create grey scale of it 
-img = cv2.imread('trump.jpg')
+img = cv2.imread('face.jpg')
 grey_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # start with bigger target, the face
@@ -41,7 +42,7 @@ for (ex, ey, ew, eh) in eyes:
    cv2.rectangle(detected_face, (ex, ey), (ex + ew, ey + eh), (255,255,0), 2) # color and thickness
 
 # blob detection algo used for tracking
-threshold = 86
+threshold = 42
 _, img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
 
 def detect_face(img, classifier):
@@ -49,7 +50,7 @@ def detect_face(img, classifier):
     # detect on grey, work with colored
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # get the face
-    faces = face_cascade.detectMultiScale(grey_frame, 1.3, 5)
+    faces = classifier.detectMultiScale(grey_frame, 1.3, 5)
     # check how many faces
     if len(faces > 1):
         # set largest
@@ -72,7 +73,7 @@ def detect_eyes(img, classifier):
     # create two tone img copy 
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # get the eyes
-    eyes = eye_cascade.detectMultiScale(grey_frame, 1.3, 5)
+    eyes = classifier.detectMultiScale(grey_frame, 1.3, 5)
     # get frame height and width  
     height = np.size(img, 0)
     width = np.size(img, 1)
@@ -98,12 +99,20 @@ def ignore_brow(img):
     img = img[brow_height:height, 0:width]
     return img
 
+def blob(img, detector):
+    grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
+    img = cv2.erode(img, None, iterations=2)
+    img = cv2.dilate(img, None, iterations=4)
+    img = cv2.medianBlur(img, 5)
+    coords = detector.detect(img)
+    return coords
 
+keypoints = blob(img, detector)
+cv2.drawKeypoints(img, keypoints, img, (0, 0, 255), 
+cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-
-
-
-# show results of face detection
+# show results of detection
 cv2.imshow('face detected', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
