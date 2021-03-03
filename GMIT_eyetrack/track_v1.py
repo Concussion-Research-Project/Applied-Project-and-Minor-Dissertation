@@ -15,7 +15,7 @@ parameters.maxArea = 1500
 detector = cv2.SimpleBlobDetector_create(parameters)
 
 # import image for testing and create grey scale of it 
-img = cv2.imread('face.jpg')
+img = cv2.imread('default.jpg')
 grey_scale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # start with bigger target, the face
@@ -27,13 +27,13 @@ faces = face_cascade.detectMultiScale(grey_scale, 1.3, 5)
 for (fx, fy, fw, fh) in faces:
     cv2.rectangle(img, (fx, fy), (fx + fw, fy + fh), (255,255,0), 2) # color and thickness
 
-# now pick out the eyes from face frame
-# cut out grey face frame
-grey_face = grey_scale[fy:fy+fh, fx:fx+fw]
-# cut out detected face frame
-detected_face = img[fy:fy+fh, fx:fx+fw]
-# eyes: an array of arrays
-eyes = eye_cascade.detectMultiScale(grey_face)
+    # now pick out the eyes from face frame
+    # cut out grey face frame
+    grey_face = grey_scale[fy:fy+fh, fx:fx+fw]
+    # cut out detected face frame
+    detected_face = img[fy:fy+fh, fx:fx+fw]
+    # eyes: an array of arrays
+    eyes = eye_cascade.detectMultiScale(grey_face)
 
 # draw box around eyes
 # start at ex,ey
@@ -46,6 +46,7 @@ threshold = 42
 _, img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
 
 def detect_face(img, classifier):
+    print('DETECT_FACE')
     # create two tone img copy 
     # detect on grey, work with colored
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -70,6 +71,7 @@ def detect_face(img, classifier):
     return frame
 
 def detect_eyes(img, classifier):
+    print('DETECT_EYES')
     # create two tone img copy 
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # get the eyes
@@ -91,6 +93,7 @@ def detect_eyes(img, classifier):
     return left_eye, right_eye
 
 def ignore_brow(img):
+    print('IGNORE_BROW')
     # set height and width to the images values
     height, width = img.shape[:2]
     # set eye brow line estimate
@@ -100,6 +103,7 @@ def ignore_brow(img):
     return img
 
 def blob(img, detector):
+    print('BLOB')
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
     # reduce image 'noise'
@@ -110,8 +114,7 @@ def blob(img, detector):
     return coords
 
 keypoints = blob(img, detector)
-cv2.drawKeypoints(img, keypoints, img, (0, 0, 255), 
-cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+cv2.drawKeypoints(img, keypoints, img, (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
 # show results of detection
 cv2.imshow('face detected', img)
