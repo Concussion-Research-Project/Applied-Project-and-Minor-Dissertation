@@ -1,78 +1,100 @@
 import numpy as np
 import matplotlib as mpl
+from numpy.lib.function_base import append
 mpl.use('tkagg')    #YAAA!!  this finally makes the Damn thing work
 import matplotlib.pyplot as plt
 import math
 import sklearn.cluster as skcl
 from mpl_toolkits.mplot3d import axes3d
+from pymongo import MongoClient
 
+# build a new client instance of MongoClient
+mongo_client = MongoClient('mongodb+srv://research-project:cGeNVHwDOQBIjXAM@cluster0.mrfjn.mongodb.net/clients?retryWrites=true&w=majority')
 
-# =========== test code ===============
+# create new database and collection instance
+db = mongo_client.clients
+col = db.baseline
 
+# test data arrays
+tx1, ty1, tx2, ty2, txr, tyr = [], [], [], [], [], []
 
-
-# ==== plot data in a graph for visualiation ====
-# format of the input data
-x1, y1, x2, y2, xr, yr = [], [], [], [], [], []
-# read from file
-# for line in open('eye-coordinatesFormat.txt', 'r'):
-# for line in open('object_rocket.csv', 'r'):
-for line in open('eye-coordinates.txt', 'r'):
-  values = [float(s) for s in line.split()]
-  x1.append(values[0])
-  y1.append(values[1])
-  x2.append(values[2])
-  y2.append(values[3])
-  xr.append((values[0] + values[2]) / 2)
-  yr.append((values[1] + values[3]) / 2)
-
-
-# Test Data: Both Eyes
-plt.plot(x1, y1)
-plt.plot(x2, y2)
-plt.show()
-
-# Test Data: Average
-plt.plot(xr, yr)
-plt.show()
-
-
-# baseline data
+# baseline data arrays
 bx1, by1, bx2, by2, bxr, byr = [], [], [], [], [], []
-for line in open('eye-coordinatesBaseLine.txt', 'r'):
-  values = [float(s) for s in line.split()]
-  bx1.append(values[0])
-  by1.append(values[1])
-  bx2.append(values[2])
-  by2.append(values[3])
-  bxr.append((values[0] + values[2]) / 2)
-  byr.append((values[1] + values[3]) / 2)
 
 
-# Baseline Data: Both Eyes
-plt.plot(bx1, by1)
-plt.plot(bx2, by2)
-plt.show()
+def read_data(v1, v2, v3 , v4 , v5 , v6):
 
-# Baseline Data: Average
-plt.plot(bxr, byr)
-plt.show()
+  # enter filename to be displayed
+  filename = input("Enter filename: ")
+
+  # make an API call to the MongoDB server
+  findClient = col.find_one({'client_id' : filename})
+
+  if(findClient):
+      findClient.pop("_id")
+  else:
+      print('\nClient with ID %s does not exists.' % (filename))
+
+  # get contents from data result
+  client_array = findClient["contents"]
+
+  # remove new lines
+  client_list_no_lines = client_array.split("\n")
+
+  # get line from result
+  for line in client_list_no_lines:
+    counter = 0
+    
+    #remove commas
+    for s in line.split(", "):
+      
+      # if not empty
+      if(s != ""):
+        value = int(s)
+
+        # x1[] y1[] x2[] y2[]
+        if(counter == 0):
+          v1.append(value)
+        elif(counter == 1):
+          v2.append(value)
+        elif(counter == 2):
+          v3.append(value)
+        elif(counter == 3):
+          v4.append(value)
+          
+        counter += 1
+
+        if(counter == 4):
+          # get average (combined left and right eye)
+          v5.append((v1[len(v1)-1] + v3[len(v3)-1]) / 2)
+          v6.append((v2[len(v2)-1] + v4[len(v4)-1]) / 2)
+
+  # Test Data: Both Eyes
+  plt.plot(v1, v2)
+  plt.plot(v3, v4)
+  plt.show()
+
+  # Test Data: Average
+  plt.plot(v5, v6)
+  plt.show()
+
+# read test data
+read_data(tx1, ty1, tx2, ty2, txr, tyr)
+
+# read baseline data
+read_data(bx1, by1, bx2, by2, bxr, byr)
 
 # Test Average vs Baseline Average
 plt.plot(bxr, byr)
-plt.plot(xr, yr)
+plt.plot(txr, tyr)
 plt.show()
 
-
-# ==== work out standard deviation for tests and baseline====
-
 # tests
-# std xr
-stdXr = np.std(xr)
+stdXr = np.std(txr)
 print("stdXr : ", stdXr)
 
 # std yr
-stdYr = np.std(yr)
+stdYr = np.std(tyr)
 print("stdYr : ", stdYr)
 
 # combine std of 2 dimensions
@@ -103,11 +125,8 @@ if(dif < 5):
 else:
   print("Fail...")
 
-# ==== scikit-learn ======
-# k-means clustering
-
-# load in dataset
-eye_data = np.genfromtxt('eye-coordinatesBaseLine.txt', delimiter=' ', usecols=(0,1,2,3), skip_header=0)
+# combine 4 one dimensal arrays into a 2d array
+eye_data = np.column_stack((tx1,ty1,tx2,ty2))
 
 # create 4d graph
 fig = plt.figure()
@@ -118,19 +137,11 @@ img = ax.scatter(eye_data[:,0], eye_data[:,1], eye_data[:,2], c=eye_data[:,3], c
 fig.colorbar(img)
 plt.show()
 
-# create a 3d graph
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-# plot eye data
-img = ax.scatter(eye_data[:,0], eye_data[:,1], eye_data[:,2])
-plt.show()
-
 # peform kmeans fitting
 kmeans = skcl.KMeans(n_clusters=5, random_state=0).fit(eye_data)
 
 # display cluster labels
-print(kmeans.labels_)
+print("Cluster Labels: ", kmeans.labels_)
 
 # make a 3d plot using cluster labels
 fig = plt.figure()
@@ -180,7 +191,7 @@ plt.show()
 fig, axs = plt.subplots(1,2, figsize=(10,5))
 
 # combine 2 one dimensal arrays into a 2d array
-average_eye_data = np.column_stack((xr,yr))
+average_eye_data = np.column_stack((txr,tyr))
 
 # top left graph
 axs[0].scatter(average_eye_data[kmeans.labels_ == 0][:,0],average_eye_data[kmeans.labels_ == 0][:,1])
@@ -197,16 +208,4 @@ axs[1].plot(average_eye_data[kmeans.labels_ == 3][:,0],average_eye_data[kmeans.l
 axs[1].plot(average_eye_data[kmeans.labels_ == 4][:,0],average_eye_data[kmeans.labels_ == 4][:,1])
 
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
 
