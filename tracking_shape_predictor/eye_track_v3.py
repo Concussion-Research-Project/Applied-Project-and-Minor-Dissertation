@@ -2,9 +2,16 @@ import cv2
 import dlib
 import numpy as np
 
+import csv
+
+# open .txt & .csv for writing
+writeToFile = open("eye-coordinates.txt", "w")
+writeToFileCSV = open("eye-coordinatesCSV.csv", "w")
+
 def save_to_file(lx, ly, rx, ry):
-    # save
+    # write Left and Right eye x,y coords to .txt & .csv   
     writeToFile.write(str(lx) + " " + str(ly) + " " + str(rx) + " " + str(ry) + "\n")
+    writeToFileCSV.write(str(lx) + ", " + str(ly) + ", " + str(rx) + ", " + str(ry) + "\n")
 
 def shape_to_np(shape, dtype="int"): 
 	# initialize the list of (x, y)-coordinates
@@ -61,9 +68,6 @@ left_x = 0
 left_y = 0
 right_x = 0
 right_y = 0
-
-# open file to save eye coordinates
-writeToFile = open("eye-coordinates.txt", "w")
 
 # When record is True, x,y coords are saved to file
 record = False
@@ -146,9 +150,6 @@ while(True):
         #for (x, y) in shape[36:48]:
         #   cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
 
-        # show the image with the face detections + facial landmarks
-        cv2.imshow('eyes', img)
-
         # draw red dot in center of blue dot
         cv2.circle(img, (x, y), 10, (0, 0, 255), -1)
 
@@ -193,7 +194,11 @@ while(True):
                     dx = 1
                     dy = 0
 
-    #cv2.imshow("image", thresh)
+    # show the image with the face detections + facial landmarks
+    # Show vidoe capture in window
+    cv2.imshow('eyes', img) #("image", thresh)
+
+    
     k = cv2.waitKey(1)
 
     # press R to record, ESC to exit
@@ -203,6 +208,7 @@ while(True):
         break
 
 # close file and webcam
-writeToFile.close()   
+writeToFile.close()  
+writeToFileCSV.close() 
 cap.release()
 cv2.destroyAllWindows()
