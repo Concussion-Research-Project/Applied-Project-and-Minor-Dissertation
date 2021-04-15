@@ -149,7 +149,8 @@ class Ui_MainWindow(object):
         self.btn_Quit_Baseline_3.setStyleSheet("color: rgb(238, 238, 236);\n"
                 "background-color: rgb(35, 35, 35);")
         self.btn_Quit_Baseline_3.setObjectName("btn_Quit_Baseline_3")
-        
+        self.btn_Quit_Baseline_3.clicked.connect(self.QuitApplication)
+
         self.stackedWidget.addWidget(self.BaselineTest)
         self.Injury_test = QtWidgets.QWidget()
         self.Injury_test.setObjectName("Injury_test")
@@ -247,6 +248,7 @@ class Ui_MainWindow(object):
         self.btn_Quit_InjuryTest.setStyleSheet("color: rgb(238, 238, 236);\n"
                 "background-color: rgb(35, 35, 35);")
         self.btn_Quit_InjuryTest.setObjectName("btn_Quit_InjuryTest")
+        self.btn_Quit_InjuryTest.clicked.connect(self.QuitApplication)
         
         self.stackedWidget.addWidget(self.Injury_test)
         self.frame_2 = QtWidgets.QFrame(self.groupBoxForLabels)
@@ -307,6 +309,9 @@ class Ui_MainWindow(object):
         injurytestActivity = self.input_activity_Injurytest_2.text()
         injurytestDescription = self.input_description_Injurytest_2.text()
         self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName, injurytestActivity, injurytestDescription, test)
+
+    def QuitApplication(self):
+        app.exit()
 
     def save_to_file(self,lx, ly, rx, ry, file1, file2):
         # write Left and Right eye x,y coords to .txt & .csv   
