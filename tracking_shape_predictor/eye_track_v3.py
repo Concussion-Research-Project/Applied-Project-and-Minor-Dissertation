@@ -18,11 +18,15 @@ colBaseline = db.baseline
 # injury_test collection
 colInjuryTests = db.injury_tests
 
-# open .txt & .csv for writing
-writeToFile = open("eye-coordinates.txt", "w")
-writeToFileCSV = open("eye-coordinatesCSV.csv", "w")
+# global variables
+right_x = 0
+right_y = 0
+
+left_x = 0 
+left_y = 0  
 
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(727, 600)
@@ -304,10 +308,10 @@ class Ui_MainWindow(object):
         injurytestDescription = self.input_description_Injurytest_2.text()
         self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName, injurytestActivity, injurytestDescription, test)
 
-    def save_to_file(self,lx, ly, rx, ry):
+    def save_to_file(self,lx, ly, rx, ry, file1, file2):
         # write Left and Right eye x,y coords to .txt & .csv   
-        writeToFile.write(str(lx) + " " + str(ly) + " " + str(rx) + " " + str(ry) + "\n")
-        writeToFileCSV.write(str(lx) + ", " + str(ly) + ", " + str(rx) + ", " + str(ry) + "\n")
+        file1.write(str(lx) + " " + str(ly) + " " + str(rx) + " " + str(ry) + "\n")
+        file2.write(str(lx) + ", " + str(ly) + ", " + str(rx) + ", " + str(ry) + "\n")
 
     def shape_to_np(self, shape, dtype="int"): 
         # initialize the list of (x, y)-coordinates
@@ -352,6 +356,9 @@ class Ui_MainWindow(object):
                 #print('LEFT MID VALUE: ' ,mid)
             # draw circle on eyes
             cv2.circle(img, (cx, cy), 4, (0, 0, 255), 2)
+            #cv2.putText(img, "Left pupil:  " + str(left_x + " ," + left_y), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+            #cv2.putText(img, "Right pupil: " + str(right_x + " ," + right_y), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+
             #print('')
         except:
             pass
@@ -360,10 +367,15 @@ class Ui_MainWindow(object):
         pass
 
     def EyeTrackerOpenCV(self, ID, todays_date, clientName, injurytestActivity, injurytestDescription, testType):
+        
+        # open .txt & .csv for writing
+        writeToFile = open("eye-coordinates.txt", "w")
+        writeToFileCSV = open("eye-coordinatesCSV.csv", "w")
+        
         # When record is True, x,y coords are saved to file
         record = False
-        prompt1 = '' #"Press 'R' to Start Recording Data: "
-        prompt2 = '' #"Press 'ESC' to Exit: "
+        prompt1 = "Press 'R' to Start Recording Data: "
+        prompt2 = "Press 'ESC' to Exit: "
 
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_68.dat')
@@ -405,6 +417,7 @@ class Ui_MainWindow(object):
             ret, img = cap.read()
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             rects = detector(gray, 1)
+
             for rect in rects:
 
                 shape = predictor(gray, rect)
@@ -427,60 +440,64 @@ class Ui_MainWindow(object):
                 self.contouring(thresh[:, 0:mid], mid, img)
                 self.contouring(thresh[:, mid:], mid, img, True)
 
-                # only save when 'R' is pressed, to avoid picking up 0,0,0,0
-                if(record == False):
-                    cv2.putText(img, prompt1, (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
-                else:
-                    cv2.putText(img, prompt2, (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
-                    # save stuff
-                    self.save_to_file(left_x, left_y, right_x, right_y)
+            # only save when 'R' is pressed, to avoid picking up 0,0,0,0
+            if(record == False):
+                cv2.putText(img, prompt1, (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+            else:
+                cv2.putText(img, prompt2, (90, 195), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+                # save stuff
+                self.save_to_file(left_x, left_y, right_x, right_y, writeToFile, writeToFileCSV)
 
-                #for (x, y) in shape[36:48]:
-                #   cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
+            #for (x, y) in shape[36:48]:
+            #   cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
 
-                # draw red dot in center of blue dot
-                cv2.circle(img, (x, y), 10, (0, 0, 255), -1)
+            # draw red dot in center of screen
+            cv2.circle(img, (x, y), 10, (0, 0, 255), -1)
 
-                # move the dot if recording
-                if(record):
-                    # apply formula to make it move
-                    x += dx * speed
-                    y += dy * speed
+            # putText() is used to draw the text string onto the screen.
+            cv2.putText(img, "Left pupil:  " + str(left_x) + " ," + str(left_y), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+            cv2.putText(img, "Right pupil: " + str(right_x) + " ," + str(right_y), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
 
-                    # change x-axis direction when at boundry
-                    if(x > (width - offset)):
-                        dx = -1
-                    elif(x < offset):
-                        dx = 1
+            # move the dot if recording
+            if(record):
+                # apply formula to make it move
+                x += dx * speed
+                y += dy * speed
 
-                    # change y-axis direction when at boundry
-                    if(y > (height - offset)):
+                # change x-axis direction when at boundry
+                if(x > (width - offset)):
+                    dx = -1
+                elif(x < offset):
+                    dx = 1
+
+                # change y-axis direction when at boundry
+                if(y > (height - offset)):
+                    dy = -1
+                elif(y < offset):
+                    dy = 1
+            
+                # change direction if at center point
+                if(x == dot_cx and y == dot_cy):
+                    if(counter == 0):
+                        print("counter 0 passed")
+                        counter += 1
+                        dx = 0
                         dy = -1
-                    elif(y < offset):
+                    elif(counter == 1):
+                        print("counter 1 passed")
+                        counter += 1
+                        dx = -1
+                        dy = 0
+                    elif(counter == 2):
+                        print("counter 2 passed")
+                        counter += 1
+                        dx = 0
                         dy = 1
-                
-                    # change direction if at center point
-                    if(x == dot_cx and y == dot_cy):
-                        if(counter == 0):
-                            print("counter 0 passed")
-                            counter += 1
-                            dx = 0
-                            dy = -1
-                        elif(counter == 1):
-                            print("counter 1 passed")
-                            counter += 1
-                            dx = -1
-                            dy = 0
-                        elif(counter == 2):
-                            print("counter 2 passed")
-                            counter += 1
-                            dx = 0
-                            dy = 1
-                        elif(counter == 3):
-                            print("counter 3 passed")
-                            counter += 1
-                            dx = 1
-                            dy = 0
+                    elif(counter == 3):
+                        print("counter 3 passed")
+                        counter += 1
+                        dx = 1
+                        dy = 0
 
             # show the image with the face detections + facial landmarks
             # Show vidoe capture in window
