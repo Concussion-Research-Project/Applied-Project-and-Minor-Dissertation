@@ -486,6 +486,8 @@ class Ui_MainWindow(object):
             # Show vidoe capture in window
             cv2.imshow('eyes', img) #("image", thresh)
 
+            #cv2.putText(img, "Left Eye: " + )
+
             
             k = cv2.waitKey(1)
 
