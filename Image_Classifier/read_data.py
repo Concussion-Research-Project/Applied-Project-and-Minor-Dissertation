@@ -16,8 +16,8 @@ mongo_client = MongoClient('mongodb+srv://research-project:cGeNVHwDOQBIjXAM@clus
 
 # create new database and collection instance
 db = mongo_client.clients
-#col = db.baseline
-col = db.ai_training
+col = db.baseline
+#col = db.ai_training
 
 # test data arrays
 tx1, ty1, tx2, ty2, txr, tyr = [], [], [], [], [], []
