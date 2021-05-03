@@ -1,7 +1,8 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # prevents keras warnings if no GPU is found on device
 from keras.models import load_model
 from tensorflow import keras
 import tensorflow as tf
-import os
 import sklearn.cluster as skcl
 import matplotlib.pyplot as plt
 import cv2
@@ -14,8 +15,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib as mpl
 from numpy.lib.function_base import append
 mpl.use('tkagg')  # needed to format mpl
-# prevents keras warnings if no GPU is found on device
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
 client = MongoClient(
@@ -45,9 +44,15 @@ image_size = (180, 180)
 """
 Ui_MainWindow(object)
 
-add documentation
+Implementation of the PyQt5 model/view architecture. Serves as
+client navigation and helps controll the application logic.
 """
 class Ui_MainWindow(object):
+    """
+    setupUi(self, MainWindow)
+
+    Creates GUI elements such as frames, windows, labels and buttons
+    """
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(727, 600)
@@ -436,6 +441,12 @@ class Ui_MainWindow(object):
         self.btn_read_injurytest.clicked.connect(
             lambda: self.stackedWidget.setCurrentWidget(self.Read_InjuryTest))
 
+    """
+    retranslateUi(self, MainWindow)
+
+    Navigation controller for the GUI. Re-translates the user from
+    one winow to another when they click the various UI buttons 
+    """
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -468,54 +479,88 @@ class Ui_MainWindow(object):
         self.btnRIT_submit.setText(_translate("MainWindow", "Submit"))
         self.btnRIT_quit.setText(_translate("MainWindow", "Quit"))
 
+    """
+    clickedSubmitBaseline(self, text)
+
+    selects option 1 to write to the baseline database. Gets the current time
+    and calls EyeTrackerOpenCV()
+    """
     def clickedSubmitBaseline(self, text):
-        test = 1
+        option = 1
         baselineID = self.input_ID_baseline_2.text()
         todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         baselineName = self.input_name_baseline_2.text()
         self.EyeTrackerOpenCV(baselineID, todays_date,
-                              baselineName, "", "", test)
+                              baselineName, "", "", option)
 
+    """
+    clickedSubmitInjuryTest(self, text)
+
+    selects option 2 to write to the injuryTest database. Gets the currents time
+    and prompts user for injury details. Then calls EyeTrackerOpenCV()
+    """
     def clickedSubmitInjuryTest(self, text):
-        test = 2
+        option = 2
         injurytestID = self.input_ID_Injurytest_2.text()
         todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         injurytestName = self.input_name_Injurytest_2.text()
         injurytestActivity = self.input_activity_Injurytest_2.text()
         injurytestDescription = self.input_description_Injurytest_2.text()
         self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName,
-                              injurytestActivity, injurytestDescription, test)
+                              injurytestActivity, injurytestDescription, option)
 
+    """
+    clickedReadBaseline(self, text)
+
+    selects option 3 to read from the baseline database. Calls read_data() to 
+    request eye data for the database. Calls k_means_clusters() to show and 
+    finally image_classifier().
+    """
     def clickedReadBaseline(self, text):
-        test = 3
+        option = 3
         # get test_id from text
         baselineTestID = self.lineEdit_file1.text()
         # read test data
-        self.read_data(baselineTestID, tx1, ty1, tx2, ty2, txr, tyr, test)
+        self.read_data(baselineTestID, tx1, ty1, tx2, ty2, txr, tyr, option)
         # peform clustering
         self.k_means_clusters()
         # classify pass/fail
         self.image_classifier()
 
+    """
+    clickedReadInjuryTest(self, text)
+
+    selects option 4 to read from the injuryTest database. Calls read_data() to 
+    request eye data for the database. Calls k_means_clusters() to show and 
+    finally image_classifier().
+    """
     def clickedReadInjuryTest(self, text):
-        test = 4
+        option = 4
         # get test_id from text
         injuryTestID = self.lineEdit.text()
         # read test data
-        self.read_data(injuryTestID, tx1, ty1, tx2, ty2, txr, tyr, test)
+        self.read_data(injuryTestID, tx1, ty1, tx2, ty2, txr, tyr, option)
         # peform clustering
         self.k_means_clusters()
         # classify pass/fail
         self.image_classifier()
 
+    # exit application
     def QuitApplication(self):
         app.exit()
 
+    # save to csv
     def save_to_file(self, lx, ly, rx, ry, file1):
         # write Left and Right eye x,y coords to .csv
         file1.write(str(lx) + ", " + str(ly) + ", " +
                     str(rx) + ", " + str(ry) + "\n")
 
+    """
+    shape_to_np(self, shape, dtype="int")
+
+    uses the 68_shape.dat model to return
+    the (x,y) coordinates for each facial landmark
+    """
     def shape_to_np(self, shape, dtype="int"):
         # initialize the list of (x, y) coordinates
         coords = np.zeros((68, 2), dtype=dtype)
@@ -526,12 +571,27 @@ class Ui_MainWindow(object):
         # return the list of (x, y) coordinates
         return coords
 
+    """
+    eye_on_mask(self, mask, side)
+
+    Draws a black mask on the face. Takes in image points and 
+    colour arguments. Returns an image with the area between
+    those points filled with that colour.
+    
+    """
     def eye_on_mask(self, mask, side):
         points = [shape[i] for i in side]
         points = np.array(points, dtype=np.int32)
         mask = cv2.fillConvexPoly(mask, points, 255)
         return mask
 
+    """
+    contouring(self, thresh, mid, img, right=False)
+
+    Locates both eyes by finding the largest contours from the 
+    mask. Dividing the mask by the mid point will then give the
+    center of the eyes. Finially draws red circles around each eye.
+    """
     def contouring(self, thresh, mid, img, right=False):
         _, cnts, _ = cv2.findContours(
             thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -563,6 +623,15 @@ class Ui_MainWindow(object):
     def nothing(self, x):
         pass
 
+    """
+    EyeTrackerOpenCV(self, ID, todays_date, clientName, injurytestActivity, 
+        injurytestDescription, testType)
+
+    Requests access to the device webcam. Displays user prompts on 
+    screen to start recording data once ready. Moves the red dot 
+    around the screen and captures the (x,y) coordinates of the eyes. 
+    Once the recording is finished the data is stored via MongoDB.
+    """
     def EyeTrackerOpenCV(self, ID, todays_date, clientName, injurytestActivity, injurytestDescription, testType):
         # open .csv for writing
         writeToFileCSV = open("./files/eye-coordinatesCSV.csv", "w")
@@ -617,18 +686,29 @@ class Ui_MainWindow(object):
             rects = detector(gray, 1)
 
             for rect in rects:
-
+                # use 68_shape.dat facial landmarks
                 shape = predictor(gray, rect)
                 shape = self.shape_to_np(shape)
+
+                # draw mask on the face
                 mask = np.zeros(img.shape[:2], dtype=np.uint8)
                 mask = self.eye_on_mask(mask, left)
                 mask = self.eye_on_mask(mask, right)
+
+                # expand white area around the eyes
                 mask = cv2.dilate(mask, kernel, 5)
+                # segement out the eyes
                 eyes = cv2.bitwise_and(img, img, mask=mask)
                 mask = (eyes == [0, 0, 0]).all(axis=2)
                 eyes[mask] = [255, 255, 255]
+
+                # get mid point between both eyes
                 mid = (shape[42][0] + shape[39][0]) // 2
+
+                # convert eyes to greyscale
                 eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
+
+                # threshold to filter ambient light
                 threshold = cv2.getTrackbarPos('threshold', 'image')
                 _, thresh = cv2.threshold(
                     eyes_gray, threshold, 255, cv2.THRESH_BINARY)
@@ -636,7 +716,11 @@ class Ui_MainWindow(object):
                 thresh = cv2.dilate(thresh, None, iterations=4)  # 2
                 thresh = cv2.medianBlur(thresh, 3)  # 3
                 thresh = cv2.bitwise_not(thresh)
+
+                # left eye
                 self.contouring(thresh[:, 0:mid], mid, img)
+
+                # right eye
                 self.contouring(thresh[:, mid:], mid, img, True)
 
             # only save when 'R' is pressed, to avoid picking up 0,0,0,0
@@ -732,7 +816,6 @@ class Ui_MainWindow(object):
 
             # insert the contents into the "file" collection
             colInjuryTests.insert(text_file_doc)
-
 
     """
     read_data(x1, y1, x2 , y2 , avgX , avgY)
@@ -870,7 +953,6 @@ class Ui_MainWindow(object):
 
         # delete of file path
         del test_img_path
-
 
 if __name__ == "__main__":
     import sys
