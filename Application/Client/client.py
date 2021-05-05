@@ -891,17 +891,14 @@ class Ui_MainWindow(object):
     """
     def k_means_clusters(self):
 
-        # combine 4 one dimensal arrays into a 2d array
-        eye_data = np.column_stack((tx1,ty1,tx2,ty2))
-
-        # peform kmeans fitting
-        kmeans = skcl.KMeans(n_clusters=5, random_state=0).fit(eye_data)
-
         # plot combined average data grouped by kmeans labels
         fig, axs = plt.subplots(1,2, figsize=(10,5))
 
         # combine 2 one dimensal arrays into a 2d array
         average_eye_data = np.column_stack((txr,tyr))
+
+        # peform kmeans fitting
+        kmeans = skcl.KMeans(n_clusters=5, random_state=0).fit(average_eye_data)
 
         # top left graph
         axs[0].scatter(average_eye_data[kmeans.labels_ == 0][:,0],average_eye_data[kmeans.labels_ == 0][:,1])
@@ -921,6 +918,14 @@ class Ui_MainWindow(object):
         
         # show image
         plt.show()
+
+        # reset array data before next loop
+        tx1.clear()
+        ty1.clear()
+        tx2.clear()
+        ty2.clear()
+        txr.clear()
+        tyr.clear()
 
     """
     image_classifier()

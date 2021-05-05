@@ -10,7 +10,7 @@ import os
 # counter
 num_skipped = 0
 
-# loop through data and filter corrupted images
+# loop through data and filter out corrupted images
 for folder_name in ("fail", "pass"):
     folder_path = os.path.join("ai_data", folder_name)
     for fname in os.listdir(folder_path):
@@ -120,7 +120,7 @@ def make_model(input_shape, num_classes):
         x = layers.BatchNormalization()(x)
         x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
 
-        # Project residual
+        # residual
         residual = layers.Conv2D(size, 1, strides=2, padding="same")(
             previous_block_activation
         )
@@ -135,6 +135,7 @@ def make_model(input_shape, num_classes):
     x = layers.Activation("relu")(x)
     x = layers.GlobalAveragePooling2D()(x)
 
+    # final activation functions
     if num_classes == 2:
         activation = "sigmoid"
         units = 1
@@ -142,8 +143,13 @@ def make_model(input_shape, num_classes):
         activation = "softmax"
         units = num_classes
 
+    # dropout layer helps prevent model overfitting
     x = layers.Dropout(0.5)(x)
+
+    # output layer
     outputs = layers.Dense(units, activation=activation)(x)
+
+    # return model
     return keras.Model(inputs, outputs)
 
 # create model
@@ -151,7 +157,7 @@ model = make_model(input_shape=image_size + (3,), num_classes=2)
 # image showing model structure
 keras.utils.plot_model(model, show_shapes=True)
 
-# Train the model
+# define amount of training cycles
 epochs = 20
 
 # save model at checkpoints during end of each epoch
@@ -166,7 +172,7 @@ model.compile(
     metrics=["accuracy"],
 )
 
-# fit model
+# fit model starts the training process with given paramaters
 model.fit(
     train_ds, epochs=epochs, callbacks=callbacks, validation_data=val_ds, shuffle=True,
 )
