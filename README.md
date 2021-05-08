@@ -40,7 +40,7 @@ The following methods where used to achieve our goals:
 
 **Store** - The data from both tests are stored in separate databases. The baseline data could be taken and stored weeks or months before a concussive injury occurs.
 
-**Report** - As this application should be operated by a party other than the ’patient’, it should provide visual feedback of the results of the assessment.  This can be achieved through the use of a GUI.
+**Report** - As this application should be operated by a party other than the ’patient’, it should provide visual feedback of the results of the assessment.  This is achieved through the use of a GUI.
 
 ### Screenshot
 ![RoadMap](https://github.com/DarraghLally/README_Template/blob/main/images/objectivesupdated.png?raw=true)
