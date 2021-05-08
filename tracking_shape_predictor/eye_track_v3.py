@@ -13,7 +13,7 @@ client = MongoClient('mongodb+srv://research-project:cGeNVHwDOQBIjXAM@cluster0.m
 db=client.clients
 
 # baseline collection
-colBaseline = db.baseline
+colBaseline = db.test
 
 # injury_test collection
 colInjuryTests = db.injury_tests
@@ -533,13 +533,13 @@ class Ui_MainWindow(object):
 
         if(testType == 1):
             # build a document to be inserted    
-            text_file_doc = {"client_id": ID, "Date": todays_date, "name": clientName, "contents" : text}
+            text_file_doc = {"test_id": ID, "date": todays_date, "name": clientName, "contents" : text}
 
             # insert the contents into the "file" collection
             colBaseline.insert(text_file_doc)
         elif(testType == 2):
             # build a document to be inserted   
-            text_file_doc = {"client_id": ID, "Date": todays_date, "name": clientName, "activity": injurytestActivity, "description": injurytestDescription, "contents" : text}
+            text_file_doc = {"test_id": ID, "date": todays_date, "name": clientName, "activity": injurytestActivity, "description": injurytestDescription, "contents" : text}
 
             # insert the contents into the "file" collection
             colInjuryTests.insert(text_file_doc)
