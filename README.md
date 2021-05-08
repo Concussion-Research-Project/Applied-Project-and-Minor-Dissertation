@@ -148,7 +148,7 @@ $ python3 client.py
 ```
 
 ## User Guide
-Click the [link](https://github.com/Michael-Mulholland/Applied-Project-Documentation/wiki/Using-The-Application) for instructions on how to use our application.
+Click the [link](https://github.com/Michael-Mulholland/Applied-Project-Documentation/wiki/User-Guide) for instructions on how to use our application.
 
 ***
 
