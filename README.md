@@ -30,15 +30,9 @@ Write down general information about your project. It is a good idea to always p
 ### Screenshot
 ![RoadMap](https://github.com/DarraghLally/README_Template/blob/main/images/objectivesupdated.png?raw=true)
 
-<p align="center">
-<img src="" width="450" height="200">
-</p>
-
 ## Deployment Environment 
 ***
-This application runs on the Linux OS. To run this application on a Windows Operating System create a virtual environment with the appropriate Linux version. Provided below are recommended Virtual Environment Software and a GUI driven Linux OS.
-
-[VirtualBox](https://www.virtualbox.org/wiki/Downloads): Version 6.1.16
+This application runs on the Linux OS. 
 
 [Ubuntu](https://releases.ubuntu.com/18.04/): Version 18.04 LTS 
 
