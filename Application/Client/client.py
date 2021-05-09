@@ -488,10 +488,15 @@ class Ui_MainWindow(object):
     def clickedSubmitBaseline(self, text):
         option = 1
         baselineID = self.input_ID_baseline_2.text()
-        todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        baselineName = self.input_name_baseline_2.text()
-        self.EyeTrackerOpenCV(baselineID, todays_date,
-                              baselineName, "", "", option)
+        uniqueID = self.checkForID(baselineID, option)
+
+        if(uniqueID):
+            todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            baselineName = self.input_name_baseline_2.text()
+            self.EyeTrackerOpenCV(baselineID, todays_date,
+                                baselineName, "", "", option)
+        else:
+            print('ID already exists. Please enter a different one.')
 
     """
     clickedSubmitInjuryTest(self, text)
@@ -502,12 +507,17 @@ class Ui_MainWindow(object):
     def clickedSubmitInjuryTest(self, text):
         option = 2
         injurytestID = self.input_ID_Injurytest_2.text()
-        todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        injurytestName = self.input_name_Injurytest_2.text()
-        injurytestActivity = self.input_activity_Injurytest_2.text()
-        injurytestDescription = self.input_description_Injurytest_2.text()
-        self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName,
-                              injurytestActivity, injurytestDescription, option)
+        uniqueID = self.checkForID(injurytestID, option)
+
+        if(uniqueID):    
+            todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            injurytestName = self.input_name_Injurytest_2.text()
+            injurytestActivity = self.input_activity_Injurytest_2.text()
+            injurytestDescription = self.input_description_Injurytest_2.text()
+            self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName,
+                                injurytestActivity, injurytestDescription, option)
+        else:
+            print('ID already exists. Please enter a different one.')
 
     """
     clickedReadBaseline(self, text)
@@ -545,6 +555,24 @@ class Ui_MainWindow(object):
         # classify pass/fail
         self.image_classifier()
 
+    """
+    checkForID(self, clientID, test)
+    
+    checks the database for duplicate entries before creating
+    new test cases. returns true or false depending if a 
+    record was found
+    """
+    def checkForID(self, testID, test):
+        if(test == 1):
+            findClient = colBaseline.find_one({'test_id' : testID})
+        else:
+            findClient = colInjuryTests.find_one({'test_id' : testID})
+
+        if(findClient):
+            return False
+        else:
+            return True
+
     # exit application
     def QuitApplication(self):
         app.exit()
@@ -553,7 +581,7 @@ class Ui_MainWindow(object):
     def save_to_file(self, lx, ly, rx, ry, file1):
         # write Left and Right eye x,y coords to .csv
         file1.write(str(lx) + ", " + str(ly) + ", " +
-                    str(rx) + ", " + str(ry) + "\n")
+            str(rx) + ", " + str(ry) + "\n")
 
     """
     shape_to_np(self, shape, dtype="int")
@@ -584,7 +612,7 @@ class Ui_MainWindow(object):
         points = np.array(points, dtype=np.int32)
         mask = cv2.fillConvexPoly(mask, points, 255)
         return mask
-
+    
     """
     contouring(self, thresh, mid, img, right=False)
 
@@ -681,6 +709,7 @@ class Ui_MainWindow(object):
         global shape
 
         while(True):
+            # get camera input
             ret, img = cap.read()
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             rects = detector(gray, 1)
@@ -847,31 +876,31 @@ class Ui_MainWindow(object):
 
         # get line from result
         for line in client_list_no_lines:
-                counter = 0
+            counter = 0
 
-                #remove commas
-                for s in line.split(", "):
+            #remove commas
+            for s in line.split(", "):
 
-                        # if not empty
-                        if(s != ""):
-                                value = int(s)
+                # if not empty
+                if(s != ""):
+                    value = int(s)
 
-                                # x1[] y1[] x2[] y2[]
-                                if(counter == 0):
-                                        v1.append(value)
-                                elif(counter == 1):
-                                        v2.append(value)
-                                elif(counter == 2):
-                                        v3.append(value)
-                                elif(counter == 3):
-                                        v4.append(value)
+                    # x1[] y1[] x2[] y2[]
+                    if(counter == 0):
+                        v1.append(value)
+                    elif(counter == 1):
+                        v2.append(value)
+                    elif(counter == 2):
+                        v3.append(value)
+                    elif(counter == 3):
+                        v4.append(value)
 
-                                counter += 1
+                    counter += 1
 
-                                if(counter == 4):
-                                        # get average (combined left and right eye)
-                                        v5.append((v1[len(v1)-1] + v3[len(v3)-1]) / 2)
-                                        v6.append((v2[len(v2)-1] + v4[len(v4)-1]) / 2)
+                    if(counter == 4):
+                        # get average (combined left and right eye)
+                        v5.append((v1[len(v1)-1] + v3[len(v3)-1]) / 2)
+                        v6.append((v2[len(v2)-1] + v4[len(v4)-1]) / 2)
 
         # plot average Eye Test Data
         plt.plot(v5, v6)
