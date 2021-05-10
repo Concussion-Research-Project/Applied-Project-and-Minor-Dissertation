@@ -49,7 +49,7 @@ The following objectives where identified to achieve our goals:
 
 ## Deployment Environment 
 
-The application was developed for the Linux operating system. Here is a list of required. 
+The application was developed for the Linux operating system. Below is a list of requirements. 
 
 1. [**Ubuntu**](https://releases.ubuntu.com/18.04/): Version 18.04 LTS 
 
