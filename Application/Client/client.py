@@ -605,7 +605,6 @@ class Ui_MainWindow(object):
     Draws a black mask on the face. Takes in image points and 
     colour arguments. Returns an image with the area between
     those points filled with that colour.
-    
     """
     def eye_on_mask(self, mask, side):
         points = [shape[i] for i in side]
@@ -755,22 +754,22 @@ class Ui_MainWindow(object):
             # only save when 'R' is pressed, to avoid picking up 0,0,0,0
             if(record == False):
                 cv2.putText(img, prompt1, (90, 195),
-                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+                    cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
             else:
                 cv2.putText(img, prompt2, (90, 195),
-                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+                    cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
                 # save data
                 self.save_to_file(left_x, left_y, right_x,
-                                  right_y, writeToFileCSV)
+                    right_y, writeToFileCSV)
 
             # draw red dot in center of screen
             cv2.circle(img, (x, y), 10, (0, 0, 255), -1)
 
             # putText() is used to draw the text string onto the screen.
             cv2.putText(img, "Left pupil:  " + str(left_x) + " ," + str(left_y),
-                        (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+                (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
             cv2.putText(img, "Right pupil: " + str(right_x) + " ," + str(right_y),
-                        (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+                (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
 
             # move the dot if recording
             if(record):
@@ -856,17 +855,17 @@ class Ui_MainWindow(object):
     def read_data(self, filename, v1, v2, v3, v4, v5, v6, testType):
         # check if reading from baseline or injury database
         if(testType == 3):
-                # make an API call to the MongoDB server
-                findClient = colBaseline.find_one({'test_id': filename})
+            # make an API call to the MongoDB server
+            findClient = colBaseline.find_one({'test_id': filename})
         elif(testType == 4):
-                # make an API call to the MongoDB server
-                findClient = colInjuryTests.find_one({'test_id': filename})   
+            # make an API call to the MongoDB server
+            findClient = colInjuryTests.find_one({'test_id': filename})   
 
         # make an API call to the MongoDB server
         if(findClient):
-                findClient.pop("_id")
+            findClient.pop("_id")
         else:
-                print('\nClient with ID %s does not exists.' % (filename))
+            print('\nClient with ID %s does not exists.' % (filename))
 
         # get contents from data result
         client_array = findClient["contents"]
