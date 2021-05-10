@@ -488,10 +488,15 @@ class Ui_MainWindow(object):
     def clickedSubmitBaseline(self, text):
         option = 1
         baselineID = self.input_ID_baseline_2.text()
-        todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        baselineName = self.input_name_baseline_2.text()
-        self.EyeTrackerOpenCV(baselineID, todays_date,
-                              baselineName, "", "", option)
+        uniqueID = self.checkForID(baselineID, option)
+
+        if(uniqueID):
+            todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            baselineName = self.input_name_baseline_2.text()
+            self.EyeTrackerOpenCV(baselineID, todays_date,
+                                baselineName, "", "", option)
+        else:
+            print('ID already exists. Please enter a different one.')
 
     """
     clickedSubmitInjuryTest(self, text)
@@ -502,12 +507,17 @@ class Ui_MainWindow(object):
     def clickedSubmitInjuryTest(self, text):
         option = 2
         injurytestID = self.input_ID_Injurytest_2.text()
-        todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        injurytestName = self.input_name_Injurytest_2.text()
-        injurytestActivity = self.input_activity_Injurytest_2.text()
-        injurytestDescription = self.input_description_Injurytest_2.text()
-        self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName,
-                              injurytestActivity, injurytestDescription, option)
+        uniqueID = self.checkForID(injurytestID, option)
+
+        if(uniqueID):    
+            todays_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            injurytestName = self.input_name_Injurytest_2.text()
+            injurytestActivity = self.input_activity_Injurytest_2.text()
+            injurytestDescription = self.input_description_Injurytest_2.text()
+            self.EyeTrackerOpenCV(injurytestID, todays_date, injurytestName,
+                                injurytestActivity, injurytestDescription, option)
+        else:
+            print('ID already exists. Please enter a different one.')
 
     """
     clickedReadBaseline(self, text)
@@ -545,6 +555,24 @@ class Ui_MainWindow(object):
         # classify pass/fail
         self.image_classifier()
 
+    """
+    checkForID(self, clientID, test)
+    
+    checks the database for duplicate entries before creating
+    new test cases. returns true or false depending if a 
+    record was found
+    """
+    def checkForID(self, testID, test):
+        if(test == 1):
+            findClient = colBaseline.find_one({'test_id' : testID})
+        else:
+            findClient = colInjuryTests.find_one({'test_id' : testID})
+
+        if(findClient):
+            return False
+        else:
+            return True
+
     # exit application
     def QuitApplication(self):
         app.exit()
@@ -553,7 +581,7 @@ class Ui_MainWindow(object):
     def save_to_file(self, lx, ly, rx, ry, file1):
         # write Left and Right eye x,y coords to .csv
         file1.write(str(lx) + ", " + str(ly) + ", " +
-                    str(rx) + ", " + str(ry) + "\n")
+            str(rx) + ", " + str(ry) + "\n")
 
     """
     shape_to_np(self, shape, dtype="int")
@@ -577,14 +605,13 @@ class Ui_MainWindow(object):
     Draws a black mask on the face. Takes in image points and 
     colour arguments. Returns an image with the area between
     those points filled with that colour.
-    
     """
     def eye_on_mask(self, mask, side):
         points = [shape[i] for i in side]
         points = np.array(points, dtype=np.int32)
         mask = cv2.fillConvexPoly(mask, points, 255)
         return mask
-
+    
     """
     contouring(self, thresh, mid, img, right=False)
 
@@ -681,6 +708,7 @@ class Ui_MainWindow(object):
         global shape
 
         while(True):
+            # get camera input
             ret, img = cap.read()
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             rects = detector(gray, 1)
@@ -726,22 +754,22 @@ class Ui_MainWindow(object):
             # only save when 'R' is pressed, to avoid picking up 0,0,0,0
             if(record == False):
                 cv2.putText(img, prompt1, (90, 195),
-                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+                    cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
             else:
                 cv2.putText(img, prompt2, (90, 195),
-                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
+                    cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255), 1)
                 # save data
                 self.save_to_file(left_x, left_y, right_x,
-                                  right_y, writeToFileCSV)
+                    right_y, writeToFileCSV)
 
             # draw red dot in center of screen
             cv2.circle(img, (x, y), 10, (0, 0, 255), -1)
 
             # putText() is used to draw the text string onto the screen.
             cv2.putText(img, "Left pupil:  " + str(left_x) + " ," + str(left_y),
-                        (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+                (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
             cv2.putText(img, "Right pupil: " + str(right_x) + " ," + str(right_y),
-                        (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+                (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
 
             # move the dot if recording
             if(record):
@@ -827,17 +855,17 @@ class Ui_MainWindow(object):
     def read_data(self, filename, v1, v2, v3, v4, v5, v6, testType):
         # check if reading from baseline or injury database
         if(testType == 3):
-                # make an API call to the MongoDB server
-                findClient = colBaseline.find_one({'test_id': filename})
+            # make an API call to the MongoDB server
+            findClient = colBaseline.find_one({'test_id': filename})
         elif(testType == 4):
-                # make an API call to the MongoDB server
-                findClient = colInjuryTests.find_one({'test_id': filename})   
+            # make an API call to the MongoDB server
+            findClient = colInjuryTests.find_one({'test_id': filename})   
 
         # make an API call to the MongoDB server
         if(findClient):
-                findClient.pop("_id")
+            findClient.pop("_id")
         else:
-                print('\nClient with ID %s does not exists.' % (filename))
+            print('\nClient with ID %s does not exists.' % (filename))
 
         # get contents from data result
         client_array = findClient["contents"]
@@ -847,31 +875,31 @@ class Ui_MainWindow(object):
 
         # get line from result
         for line in client_list_no_lines:
-                counter = 0
+            counter = 0
 
-                #remove commas
-                for s in line.split(", "):
+            #remove commas
+            for s in line.split(", "):
 
-                        # if not empty
-                        if(s != ""):
-                                value = int(s)
+                # if not empty
+                if(s != ""):
+                    value = int(s)
 
-                                # x1[] y1[] x2[] y2[]
-                                if(counter == 0):
-                                        v1.append(value)
-                                elif(counter == 1):
-                                        v2.append(value)
-                                elif(counter == 2):
-                                        v3.append(value)
-                                elif(counter == 3):
-                                        v4.append(value)
+                    # x1[] y1[] x2[] y2[]
+                    if(counter == 0):
+                        v1.append(value)
+                    elif(counter == 1):
+                        v2.append(value)
+                    elif(counter == 2):
+                        v3.append(value)
+                    elif(counter == 3):
+                        v4.append(value)
 
-                                counter += 1
+                    counter += 1
 
-                                if(counter == 4):
-                                        # get average (combined left and right eye)
-                                        v5.append((v1[len(v1)-1] + v3[len(v3)-1]) / 2)
-                                        v6.append((v2[len(v2)-1] + v4[len(v4)-1]) / 2)
+                    if(counter == 4):
+                        # get average (combined left and right eye)
+                        v5.append((v1[len(v1)-1] + v3[len(v3)-1]) / 2)
+                        v6.append((v2[len(v2)-1] + v4[len(v4)-1]) / 2)
 
         # plot average Eye Test Data
         plt.plot(v5, v6)
