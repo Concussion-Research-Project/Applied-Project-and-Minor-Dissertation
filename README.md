@@ -43,7 +43,7 @@ The following objectives where identified to achieve our goals:
 **Report Findings** - As this application should be operated by a party other than the ’patient’, it should provide visual feedback of the results of the assessment.  This is achieved through the use of a GUI.
 
 ### Screenshot
-![RoadMap](https://github.com/Concussion-Research-Project/Applied-Project-and-Minor-Dissertation/blob/main/Documentation/Project%20Elements.pptx)
+![RoadMap](https://github.com/Concussion-Research-Project/Applied-Project-and-Minor-Dissertation/blob/main/Images/objectivesupdated.png)
 
 ***
 
